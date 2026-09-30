@@ -1,0 +1,314 @@
+{
+  "name": "patrimoine-bati-voies-chambery",
+  "title": "Patrimoine bâti communal et référentiel des voies de Chambéry",
+  "description": "Bâtiments et parcelles dont la commune est propriétaire, et voies nommées de la commune. Jeu de démonstration construit à partir de données ouvertes.",
+  "version": "1.0.0",
+  "created": "2026-09-30",
+  "licenses": [
+    {
+      "name": "etalab-2.0",
+      "title": "Licence Ouverte / Open Licence version 2.0",
+      "path": "https://www.etalab.gouv.fr/licence-ouverte-open-licence/"
+    }
+  ],
+  "sources": [
+    {
+      "title": "BD TOPO® - IGN",
+      "path": "https://geoservices.ign.fr/bdtopo"
+    },
+    {
+      "title": "Plan cadastral informatisé - Etalab",
+      "path": "https://cadastre.data.gouv.fr"
+    },
+    {
+      "title": "Base Adresse Nationale",
+      "path": "https://adresse.data.gouv.fr"
+    },
+    {
+      "title": "Fichiers des locaux et parcelles des personnes morales - DGFiP",
+      "path": "https://www.data.gouv.fr/fr/datasets/605d268f4661cf23272817c3/"
+    }
+  ],
+  "keywords": [
+    "patrimoine",
+    "bâtiments publics",
+    "voirie",
+    "Chambéry",
+    "SIG"
+  ],
+  "spatial": {
+    "crs": "EPSG:4326",
+    "commune_insee": "73065"
+  },
+  "resources": [
+    {
+      "name": "batiments-communaux",
+      "title": "Bâtiments communaux",
+      "description": "Bâtiments BD TOPO situés à au moins 50 % sur une parcelle de la commune de Chambéry (fichier DGFiP des personnes morales).",
+      "path": "batiments_communaux.csv",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": {
+        "fields": [
+          {
+            "name": "id_bien",
+            "title": "Identifiant du bien",
+            "type": "string",
+            "description": "Clé unique partagée avec la GMAO (AS-TECH) : BAT-<quartier>-<n°>"
+          },
+          {
+            "name": "nom",
+            "title": "Nom du bien",
+            "type": "string",
+            "description": "Toponyme BD TOPO ou libellé à compléter"
+          },
+          {
+            "name": "type_bien",
+            "title": "Type de bien",
+            "type": "string",
+            "description": "Famille fonctionnelle",
+            "constraints": {
+              "enum": [
+                "ADM",
+                "ENS",
+                "SPO",
+                "CUL",
+                "REL",
+                "SAN",
+                "TEC",
+                "COM",
+                "LOG",
+                "ANX",
+                "AQU"
+              ]
+            }
+          },
+          {
+            "name": "type_bien_libelle",
+            "title": "Type de bien (libellé)",
+            "type": "string"
+          },
+          {
+            "name": "quartier",
+            "title": "Quartier",
+            "type": "string",
+            "description": "Code du quartier de la Ville"
+          },
+          {
+            "name": "adresse",
+            "title": "Adresse",
+            "type": "string",
+            "description": "Adresse BAN rattachée à la parcelle"
+          },
+          {
+            "name": "idu_parcelle",
+            "title": "Parcelle cadastrale",
+            "type": "string",
+            "description": "Identifiant unique de parcelle"
+          },
+          {
+            "name": "emprise_m2",
+            "title": "Emprise au sol (m²)",
+            "type": "number",
+            "description": "Surface calculée en CC45"
+          },
+          {
+            "name": "nb_etages",
+            "title": "Nombre d'étages",
+            "type": "integer",
+            "description": "BD TOPO"
+          },
+          {
+            "name": "hauteur_m",
+            "title": "Hauteur (m)",
+            "type": "number",
+            "description": "BD TOPO"
+          },
+          {
+            "name": "sdp_estimee_m2",
+            "title": "Surface de plancher estimée (m²)",
+            "type": "number",
+            "description": "Emprise × nombre de niveaux, à confirmer par relevé"
+          },
+          {
+            "name": "usage_bdtopo",
+            "title": "Usage BD TOPO",
+            "type": "string",
+            "description": "Usage principal selon l'IGN"
+          },
+          {
+            "name": "nb_locaux",
+            "title": "Nombre de locaux DGFiP",
+            "type": "integer",
+            "description": "Locaux de la commune recensés sur la parcelle"
+          },
+          {
+            "name": "id_rnb",
+            "title": "Identifiant(s) RNB",
+            "type": "string",
+            "description": "Référentiel national des bâtiments"
+          },
+          {
+            "name": "cleabs",
+            "title": "Identifiant BD TOPO",
+            "type": "string",
+            "description": "Lien vers la BD TOPO"
+          },
+          {
+            "name": "longitude",
+            "type": "number",
+            "description": "WGS84, point intérieur"
+          },
+          {
+            "name": "latitude",
+            "type": "number",
+            "description": "WGS84, point intérieur"
+          }
+        ],
+        "primaryKey": "id_bien"
+      }
+    },
+    {
+      "name": "batiments-communaux-geo",
+      "title": "Bâtiments communaux (géométries)",
+      "path": "batiments_communaux.geojson",
+      "format": "geojson",
+      "mediatype": "application/geo+json"
+    },
+    {
+      "name": "parcelles-communales",
+      "title": "Parcelles communales",
+      "description": "Parcelles cadastrales dont la commune de Chambéry est propriétaire.",
+      "path": "parcelles_communales.csv",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": {
+        "fields": [
+          {
+            "name": "idu",
+            "title": "Identifiant parcelle",
+            "type": "string",
+            "description": "INSEE + préfixe + section + numéro"
+          },
+          {
+            "name": "section",
+            "title": "Section",
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "numero",
+            "title": "Numéro",
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "contenance_m2",
+            "title": "Contenance (m²)",
+            "type": "integer",
+            "description": "Surface cadastrale"
+          },
+          {
+            "name": "adresse",
+            "title": "Adresse DGFiP",
+            "type": "string",
+            "description": "Adresse fiscale"
+          },
+          {
+            "name": "batie",
+            "title": "Parcelle bâtie",
+            "type": "integer",
+            "description": "1 si des locaux communaux y sont recensés"
+          },
+          {
+            "name": "quartier",
+            "title": "Quartier",
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "longitude",
+            "type": "number",
+            "description": "WGS84, point intérieur"
+          },
+          {
+            "name": "latitude",
+            "type": "number",
+            "description": "WGS84, point intérieur"
+          }
+        ],
+        "primaryKey": "idu"
+      }
+    },
+    {
+      "name": "parcelles-communales-geo",
+      "title": "Parcelles communales (géométries)",
+      "path": "parcelles_communales.geojson",
+      "format": "geojson",
+      "mediatype": "application/geo+json"
+    },
+    {
+      "name": "referentiel-voies",
+      "title": "Référentiel des voies",
+      "description": "Voies nommées de la commune, alignées sur la Base Adresse Nationale.",
+      "path": "referentiel_voies.csv",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": {
+        "fields": [
+          {
+            "name": "id_voie",
+            "title": "Identifiant voie BAN",
+            "type": "string",
+            "description": "Code FANTOIR/BAN de la voie"
+          },
+          {
+            "name": "nom",
+            "title": "Nom de la voie",
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "type_voie",
+            "title": "Type de voie",
+            "type": "string",
+            "description": "Rue, avenue, place..."
+          },
+          {
+            "name": "longueur_m",
+            "title": "Longueur (m)",
+            "type": "number",
+            "description": ""
+          },
+          {
+            "name": "quartier",
+            "title": "Quartier",
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "longitude",
+            "type": "number",
+            "description": "WGS84, point intérieur"
+          },
+          {
+            "name": "latitude",
+            "type": "number",
+            "description": "WGS84, point intérieur"
+          }
+        ],
+        "primaryKey": "id_voie"
+      }
+    },
+    {
+      "name": "referentiel-voies-geo",
+      "title": "Référentiel des voies (géométries)",
+      "path": "referentiel_voies.geojson",
+      "format": "geojson",
+      "mediatype": "application/geo+json"
+    }
+  ]
+}

@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patrimoine bâti communal</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root {
+    --fond: #f6f4f0; --carte: #ffffff; --encre: #23262b; --doux: #5f6368; --trait: #e3dfd7;
+    --accent: #005e8a; --accent-clair: #e3eef4; --alerte: #b8322a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--encre);
+         font: 15px/1.45 "Segoe UI", system-ui, -apple-system, sans-serif; }
+  header { background: var(--accent); color: #fff; padding: 20px 24px 18px; }
+  header .surtitre { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+  header h1 { margin: 4px 0 2px; font-size: 26px; font-weight: 650; }
+  header p { margin: 0; font-size: 13px; opacity: .85; }
+  main { max-width: 1320px; margin: 0 auto; padding: 20px 16px 40px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+  .kpi { background: var(--carte); border: 1px solid var(--trait); border-radius: 8px; padding: 14px 16px; }
+  .kpi b { display: block; font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .kpi span { color: var(--doux); font-size: 13px; }
+  .grille { display: grid; grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); gap: 16px; margin-top: 16px; }
+  .bloc { background: var(--carte); border: 1px solid var(--trait); border-radius: 8px; padding: 16px; min-width: 0; }
+  .bloc h2 { margin: 0 0 12px; font-size: 16px; color: var(--accent); }
+  #carte { height: 560px; border-radius: 6px; }
+  .filtres { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  select, button { font: inherit; font-size: 14px; border: 1px solid var(--trait); border-radius: 6px;
+                   background: #fff; padding: 6px 10px; color: var(--encre); }
+  button { cursor: pointer; }
+  button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .barre { display: grid; grid-template-columns: 150px 1fr 64px; gap: 8px; align-items: center;
+           padding: 4px 0; cursor: pointer; border-radius: 4px; }
+  .barre:hover { background: var(--fond); }
+  .barre.eteinte { opacity: .35; }
+  .barre .lib { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .barre .piste { height: 14px; background: var(--fond); border-radius: 3px; overflow: hidden; }
+  .barre .val { height: 100%; border-radius: 3px; }
+  .barre .n { text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .aide { color: var(--doux); font-size: 12px; margin: 8px 0 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 7px 8px; border-bottom: 1px solid var(--trait); text-align: right;
+           font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--doux); font-weight: 600; }
+  td.alerte { color: var(--alerte); font-weight: 600; }
+  .deux { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .popup b { font-size: 14px; }
+  .popup dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 6px 0; font-size: 12px; }
+  .popup dt { color: var(--doux); }
+  .popup dd { margin: 0; }
+  .popup a { color: var(--accent); font-weight: 600; }
+  footer { color: var(--doux); font-size: 12px; margin-top: 20px; }
+  @media (max-width: 900px) {
+    .grille, .deux { grid-template-columns: 1fr; }
+    #carte { height: 420px; }
+    .barre { grid-template-columns: 120px 1fr 56px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="surtitre">SIG Patrimoine · démonstrateur de compétences, non officiel</div>
+  <h1>Patrimoine bâti communal de Chambéry</h1>
+  <p>Base construite à partir de données ouvertes (IGN, cadastre, BAN, DGFiP). Mise à jour du __DATE__.</p>
+</header>
+<main>
+  <section class="kpis" id="kpis"></section>
+
+  <section class="grille">
+    <div class="bloc">
+      <div class="filtres">
+        <label for="quartier">Quartier</label>
+        <select id="quartier"><option value="">Tous les quartiers</option></select>
+        <span id="compte" class="aide" style="margin:0"></span>
+      </div>
+      <div id="carte" role="region" aria-label="Carte des bâtiments communaux"></div>
+    </div>
+    <div class="bloc">
+      <h2>Bâtiments par type</h2>
+      <div class="filtres">
+        <button id="m-nb" aria-pressed="true">Nombre</button>
+        <button id="m-emp" aria-pressed="false">Emprise (m²)</button>
+      </div>
+      <div id="types"></div>
+      <p class="aide">Cliquer sur un type pour l'afficher ou le masquer sur la carte.</p>
+    </div>
+  </section>
+
+  <section class="deux">
+    <div class="bloc">
+      <h2>Bâtiments par quartier</h2>
+      <div id="quartiers"></div>
+    </div>
+    <div class="bloc">
+      <h2>Liste de travail : données à compléter</h2>
+      <table>
+        <thead><tr><th>Quartier</th><th>Bâtiments</th><th>Sans nom</th><th>Type à qualifier</th>
+          <th>Niveaux inconnus</th><th>État non renseigné</th></tr></thead>
+        <tbody id="travail"></tbody>
+      </table>
+      <p class="aide">L'état et le service affectataire relèvent de la GMAO et des visites : ils ne peuvent
+        pas être déduits des données ouvertes.</p>
+    </div>
+  </section>
+  <footer>Sources : BD TOPO® IGN, cadastre Etalab, Base Adresse Nationale, fichiers DGFiP des locaux et
+    parcelles des personnes morales (2025), quartiers de la Ville de Chambéry. Fond : Plan IGN.
+    Voirie communale : domanialité présumée.</footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const BAT = __BATIMENTS__;
+const QUA = __QUARTIERS__;
+const KPI = __INDICATEURS__;
+const TRAVAIL = __TRAVAIL__;
+const TYPES = __TYPES__;
+const COUL = __COULEURS__;
+
+const fmt = n => n == null ? "non renseigné" : Number(n).toLocaleString("fr-FR");
+const etat = { quartier: "", masques: new Set(), mesure: "nb" };
+
+// Indicateurs
+const kpis = [
+  [KPI.batiments, "bâtiments communaux"], [fmt(KPI.emprise_m2) + " m²", "d'emprise bâtie"],
+  [KPI.locaux, "locaux fiscaux"], [KPI.parcelles, "parcelles communales"],
+  [fmt(KPI.surface_ha) + " ha", "de foncier communal"], [fmt(KPI.voirie_km) + " km", "de voirie communale présumée"],
+];
+document.getElementById("kpis").innerHTML = kpis
+  .map(([v, l]) => `<div class="kpi"><b>${typeof v === "number" ? fmt(v) : v}</b><span>${l}</span></div>`).join("");
+
+// Carte
+const carte = L.map("carte", { zoomSnap: 0.5 });
+L.tileLayer("https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}",
+  { maxZoom: 19, opacity: 0.55, attribution: "Plan IGN · Géoplateforme" }).addTo(carte);
+const coucheQ = L.geoJSON(QUA, { style: { color: "#23262b", weight: 1.5, fill: false, dashArray: "4 3" } }).addTo(carte);
+carte.fitBounds(coucheQ.getBounds(), { padding: [10, 10] });
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function popup(p) {
+  const lien = p.fiche ? `<a href="${esc(p.fiche)}" target="_blank" rel="noopener">Ouvrir la fiche PDF</a>` : "";
+  return `<div class="popup"><b>${esc(p.nom || "Bâtiment à nommer")}</b><dl>
+    <dt>Identifiant</dt><dd>${esc(p.id_bien)}</dd><dt>Type</dt><dd>${esc(p.type_libelle)}</dd>
+    <dt>Adresse</dt><dd>${esc(p.adresse)}</dd><dt>Quartier</dt><dd>${esc(p.quartier_nom)}</dd>
+    <dt>Emprise</dt><dd>${fmt(Math.round(p.emprise_m2))} m²</dd><dt>Niveaux</dt><dd>${fmt(p.nb_etages)}</dd>
+    <dt>Locaux</dt><dd>${fmt(p.nb_locaux)}</dd></dl>${lien}</div>`;
+}
+const coucheB = L.geoJSON(BAT, {
+  style: f => ({ color: "#23262b", weight: 0.6, fillColor: COUL[f.properties.type_bien], fillOpacity: 0.9 }),
+  onEachFeature: (f, l) => l.bindPopup(popup(f.properties)),
+}).addTo(carte);
+
+// Filtres
+const sel = document.getElementById("quartier");
+QUA.features.map(f => f.properties).sort((a, b) => a.nom.localeCompare(b.nom, "fr"))
+  .forEach(q => sel.add(new Option(q.nom, q.code)));
+sel.onchange = () => { etat.quartier = sel.value; rafraichir(true); };
+document.getElementById("m-nb").onclick = () => changerMesure("nb");
+document.getElementById("m-emp").onclick = () => changerMesure("emp");
+function changerMesure(m) {
+  etat.mesure = m;
+  document.getElementById("m-nb").setAttribute("aria-pressed", m === "nb");
+  document.getElementById("m-emp").setAttribute("aria-pressed", m === "emp");
+  rafraichir(false);
+}
+
+function barres(conteneur, lignes, cliquable) {
+  const max = Math.max(1, ...lignes.map(l => l.v));
+  conteneur.innerHTML = lignes.map(l => `
+    <div class="barre${l.eteinte ? " eteinte" : ""}" data-code="${l.code}" ${cliquable ? 'role="button" tabindex="0"' : ""}>
+      <span class="lib" title="${esc(l.lib)}">${esc(l.lib)}</span>
+      <span class="piste"><span class="val" style="display:block;width:${(100 * l.v / max).toFixed(1)}%;background:${l.c}"></span></span>
+      <span class="n">${fmt(Math.round(l.v))}</span></div>`).join("");
+  if (!cliquable) return;
+  conteneur.querySelectorAll(".barre").forEach(el => {
+    const basculer = () => {
+      const c = el.dataset.code;
+      etat.masques.has(c) ? etat.masques.delete(c) : etat.masques.add(c);
+      rafraichir(false);
+    };
+    el.onclick = basculer;
+    el.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); basculer(); } };
+  });
+}
+
+function rafraichir(recadrer) {
+  const dansQuartier = f => !etat.quartier || f.properties.quartier === etat.quartier;
+  const visibles = BAT.features.filter(f => dansQuartier(f) && !etat.masques.has(f.properties.type_bien));
+  coucheB.clearLayers();
+  coucheB.addData({ type: "FeatureCollection", features: visibles });
+  document.getElementById("compte").textContent = `${visibles.length} bâtiment(s) affiché(s)`;
+  if (recadrer) {
+    const q = QUA.features.find(f => f.properties.code === etat.quartier);
+    carte.fitBounds(L.geoJSON(q || QUA).getBounds(), { padding: [10, 10] });
+  }
+  const parType = {};
+  BAT.features.filter(dansQuartier).forEach(f => {
+    const t = f.properties.type_bien;
+    parType[t] = (parType[t] || 0) + (etat.mesure === "nb" ? 1 : f.properties.emprise_m2);
+  });
+  barres(document.getElementById("types"), Object.keys(TYPES).filter(t => parType[t])
+    .map(t => ({ code: t, lib: TYPES[t], v: parType[t], c: COUL[t], eteinte: etat.masques.has(t) }))
+    .sort((a, b) => b.v - a.v), true);
+}
+
+// Bâtiments par quartier (vue d'ensemble, non filtrée)
+barres(document.getElementById("quartiers"), TRAVAIL.map(r => ({ code: "", lib: r.quartier, v: r.total, c: "#005e8a" })), false);
+document.getElementById("travail").innerHTML = TRAVAIL.map(r => `<tr><td>${esc(r.quartier)}</td><td>${r.total}</td>
+  <td class="${r.sans_nom ? "alerte" : ""}">${r.sans_nom}</td><td class="${r.a_qualifier ? "alerte" : ""}">${r.a_qualifier}</td>
+  <td>${r.sans_niveaux}</td><td>${r.etat_nr}</td></tr>`).join("");
+
+rafraichir(false);
+</script>
+</body>
+</html>
