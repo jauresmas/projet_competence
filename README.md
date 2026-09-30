@@ -1,6 +1,6 @@
 # SIG Patrimoine Chambéry : démonstrateur de compétences
 
-**Tableau de bord en ligne : https://jauresmas.github.io/sig-patrimoine-chambery/**
+**Tableau de bord en ligne : https://jauresmas.github.io/projet_competence/**
 
 > Démonstrateur de compétences, non officiel : ce projet n'émane pas de la Ville de Chambéry.
 
