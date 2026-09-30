@@ -1,3 +1,4 @@
 donnees/brut/
 __pycache__/
 *.qgz~
+.impeccable/

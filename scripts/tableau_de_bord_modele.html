@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Patrimoine bâti communal</title>
+<title>SIG Patrimoine Chambéry</title>
+<meta name="description" content="Démonstrateur de compétences : système d'information patrimonial municipal construit avec des données ouvertes.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
   :root {
@@ -11,91 +12,173 @@
     --accent: #005e8a; --accent-clair: #e3eef4; --alerte: #b8322a;
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body { margin: 0; background: var(--fond); color: var(--encre);
-         font: 15px/1.45 "Segoe UI", system-ui, -apple-system, sans-serif; }
-  header { background: var(--accent); color: #fff; padding: 20px 24px 18px; }
+         font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif; }
+  header { background: var(--accent); color: #fff; padding: 22px 24px 18px; }
   header .surtitre { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
-  header h1 { margin: 4px 0 2px; font-size: 26px; font-weight: 650; }
-  header p { margin: 0; font-size: 13px; opacity: .85; }
+  header h1 { margin: 4px 0 4px; font-size: 28px; font-weight: 650; line-height: 1.2; }
+  header p { margin: 0; font-size: 14px; opacity: .9; max-width: 760px; }
+  nav { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 14px; font-size: 14px; }
+  nav a { color: #fff; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.45); }
+  nav a:hover { border-color: #fff; }
   main { max-width: 1320px; margin: 0 auto; padding: 20px 16px 40px; }
+  h2.section { font-size: 19px; margin: 32px 0 12px; }
+  h2.section:first-child { margin-top: 4px; }
+  .volets { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  .volet { background: var(--carte); border: 1px solid var(--trait); border-radius: 8px; padding: 16px;
+           display: flex; flex-direction: column; gap: 8px; }
+  .volet .num { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: .06em; text-transform: uppercase; }
+  .volet h3 { margin: 0; font-size: 16px; }
+  .volet p { margin: 0; color: var(--doux); font-size: 13.5px; flex: 1; }
+  .volet .actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
   .kpi { background: var(--carte); border: 1px solid var(--trait); border-radius: 8px; padding: 14px 16px; }
   .kpi b { display: block; font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; }
   .kpi span { color: var(--doux); font-size: 13px; }
-  .grille { display: grid; grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); gap: 16px; margin-top: 16px; }
+  .grille { display: grid; grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); gap: 16px; }
   .bloc { background: var(--carte); border: 1px solid var(--trait); border-radius: 8px; padding: 16px; min-width: 0; }
-  .bloc h2 { margin: 0 0 12px; font-size: 16px; color: var(--accent); }
-  #carte { height: 560px; border-radius: 6px; }
+  .bloc h3 { margin: 0 0 12px; font-size: 16px; color: var(--accent); }
+  #carte { height: 600px; border-radius: 6px; }
   .filtres { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .couches { display: flex; gap: 6px 16px; flex-wrap: wrap; margin: 0 0 12px; padding: 10px 12px;
+             background: var(--fond); border-radius: 6px; font-size: 13.5px; }
+  .couches label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  .pastille { width: 14px; height: 10px; border-radius: 2px; display: inline-block; border: 1px solid rgba(0,0,0,.25); }
+  .legende-voirie { display: none; gap: 4px 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--doux); margin: -4px 0 12px; }
+  .legende-voirie.visible { display: flex; }
   select, button { font: inherit; font-size: 14px; border: 1px solid var(--trait); border-radius: 6px;
                    background: #fff; padding: 6px 10px; color: var(--encre); }
   button { cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.principal { background: var(--accent); color: #fff; border-color: var(--accent); }
   button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  a.lien { color: var(--accent); font-weight: 600; font-size: 14px; }
   .barre { display: grid; grid-template-columns: 150px 1fr 64px; gap: 8px; align-items: center;
-           padding: 4px 0; cursor: pointer; border-radius: 4px; }
-  .barre:hover { background: var(--fond); }
+           padding: 4px 0; border-radius: 4px; }
+  .barre[role="button"] { cursor: pointer; }
+  .barre[role="button"]:hover { background: var(--fond); }
   .barre.eteinte { opacity: .35; }
   .barre .lib { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .barre .piste { height: 14px; background: var(--fond); border-radius: 3px; overflow: hidden; }
-  .barre .val { height: 100%; border-radius: 3px; }
+  .barre .val { display: block; height: 100%; border-radius: 3px; }
   .barre .n { text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; }
   .aide { color: var(--doux); font-size: 12px; margin: 8px 0 0; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { padding: 7px 8px; border-bottom: 1px solid var(--trait); text-align: right;
-           font-variant-numeric: tabular-nums; }
+  th, td { padding: 7px 8px; border-bottom: 1px solid var(--trait); text-align: right; font-variant-numeric: tabular-nums; }
   th:first-child, td:first-child { text-align: left; }
   th { color: var(--doux); font-weight: 600; }
   td.alerte { color: var(--alerte); font-weight: 600; }
   .deux { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .docs { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .doc { background: var(--carte); border: 1px solid var(--trait); border-radius: 8px; overflow: hidden;
+         display: flex; flex-direction: column; }
+  .doc .vignette { height: 170px; background: #eceae4; overflow: hidden; border-bottom: 1px solid var(--trait); }
+  .doc .vignette img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+  .doc .vignette.texte { display: grid; place-items: center; color: var(--accent); font-size: 38px; font-weight: 700; }
+  .doc .corps { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .doc h3 { margin: 0; font-size: 15px; }
+  .doc p { margin: 0; color: var(--doux); font-size: 13px; flex: 1; }
+  .doc .liens { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
   .popup b { font-size: 14px; }
   .popup dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 6px 0; font-size: 12px; }
   .popup dt { color: var(--doux); }
   .popup dd { margin: 0; }
   .popup a { color: var(--accent); font-weight: 600; }
-  footer { color: var(--doux); font-size: 12px; margin-top: 20px; }
+  footer { color: var(--doux); font-size: 12px; margin-top: 28px; }
   @media (max-width: 900px) {
     .grille, .deux { grid-template-columns: 1fr; }
-    #carte { height: 420px; }
+    #carte { height: 460px; }
     .barre { grid-template-columns: 120px 1fr 56px; }
+    header h1 { font-size: 23px; }
   }
 </style>
 </head>
 <body>
 <header>
-  <div class="surtitre">SIG Patrimoine · démonstrateur de compétences, non officiel</div>
-  <h1>Patrimoine bâti communal de Chambéry</h1>
-  <p>Base construite à partir de données ouvertes (IGN, cadastre, BAN, DGFiP). Mise à jour du __DATE__.</p>
+  <div class="surtitre">Démonstrateur de compétences, non officiel</div>
+  <h1>SIG Patrimoine : Chambéry</h1>
+  <p>Système d'information patrimonial municipal construit uniquement avec des données ouvertes (IGN, cadastre,
+    BAN, DGFiP) : base de données, intégration de récolements, plans types et restitutions automatiques.
+    Mise à jour du __DATE__.</p>
+  <nav aria-label="Sections">
+    <a href="#volets">Le projet</a><a href="#tableau">Tableau de bord</a><a href="#documents">Documents</a>
+    <a href="__DEPOT__" target="_blank" rel="noopener">Code source</a>
+  </nav>
 </header>
 <main>
+  <h2 class="section" id="volets">Le projet en quatre volets</h2>
+  <section class="volets">
+    <article class="volet">
+      <span class="num">Volet 1</span><h3>Base de données patrimoniale</h3>
+      <p>603 bâtiments, 1 948 parcelles, 1 066 locaux et le référentiel des voies, dans une géodatabase
+        ArcGIS et un GeoPackage générés par le même modèle : domaines, alias, relation bâtiment / locaux,
+        identifiant commun avec la GMAO, contrôles qualité.</p>
+      <div class="actions"><button class="principal" data-vue="base">Voir sur la carte</button></div>
+    </article>
+    <article class="volet">
+      <span class="num">Volet 2</span><h3>Intégration d'un plan de récolement</h3>
+      <p>Contrôle et mise en cohérence d'un DXF de géomètre (Lambert 93 converti en CC45, charte de calques,
+        doublons, objets hors emprise) puis intégration dans la base topographique, avec archivage.
+        Chantier fictif, rue Croix d'Or.</p>
+      <div class="actions"><button class="principal" data-vue="chantier">Voir le chantier</button>
+        <a class="lien" href="#doc-recolement">Rapport</a></div>
+    </article>
+    <article class="volet">
+      <span class="num">Volet 3</span><h3>Plans types</h3>
+      <p>Plan de terrasse annexé aux arrêtés (atlas coté, une page par terrasse), dispositif de sécurité
+        d'une manifestation, voirie communale par domanialité pour le conseil municipal.</p>
+      <div class="actions"><button class="principal" data-vue="terrasses">Voir les terrasses</button>
+        <button data-vue="voirie">Voir la voirie</button></div>
+    </article>
+    <article class="volet">
+      <span class="num">Volet 4</span><h3>Restitutions automatiques</h3>
+      <p>__NB_FICHES__ fiches PDF par bâtiment, ce tableau de bord et un jeu open data (GeoJSON, CSV,
+        descripteur Frictionless) sous Licence Ouverte.</p>
+      <div class="actions"><a class="lien" href="#documents">Fiches et open data</a></div>
+    </article>
+  </section>
+
+  <h2 class="section" id="tableau">Tableau de bord du patrimoine bâti</h2>
   <section class="kpis" id="kpis"></section>
 
-  <section class="grille">
+  <section class="grille" style="margin-top:16px">
     <div class="bloc">
+      <div class="couches" role="group" aria-label="Couches de la carte">
+        <label><input type="checkbox" data-couche="batiments" checked> <span class="pastille" style="background:#e08a00"></span>Bâtiments communaux</label>
+        <label><input type="checkbox" data-couche="parcelles"> <span class="pastille" style="background:#cfe3c0"></span>Parcelles communales</label>
+        <label><input type="checkbox" data-couche="voirie"> <span class="pastille" style="background:#c82d23"></span>Voirie par domanialité</label>
+        <label><input type="checkbox" data-couche="terrasses"> <span class="pastille" style="background:#c82d23;opacity:.6"></span>Terrasses (fictives)</label>
+        <label><input type="checkbox" data-couche="fete"> <span class="pastille" style="background:#ffd666"></span>Fête de la musique (fictive)</label>
+        <label><input type="checkbox" data-couche="chantier"> <span class="pastille" style="background:#c43bc4"></span>Chantier Croix d'Or (fictif)</label>
+      </div>
+      <div class="legende-voirie" id="legende-voirie"></div>
       <div class="filtres">
         <label for="quartier">Quartier</label>
         <select id="quartier"><option value="">Tous les quartiers</option></select>
         <span id="compte" class="aide" style="margin:0"></span>
       </div>
-      <div id="carte" role="region" aria-label="Carte des bâtiments communaux"></div>
+      <div id="carte" role="region" aria-label="Carte du patrimoine communal"></div>
     </div>
     <div class="bloc">
-      <h2>Bâtiments par type</h2>
+      <h3>Bâtiments par type</h3>
       <div class="filtres">
         <button id="m-nb" aria-pressed="true">Nombre</button>
         <button id="m-emp" aria-pressed="false">Emprise (m²)</button>
       </div>
       <div id="types"></div>
-      <p class="aide">Cliquer sur un type pour l'afficher ou le masquer sur la carte.</p>
+      <p class="aide">Cliquer sur un type pour l'afficher ou le masquer sur la carte. Cliquer sur un bâtiment
+        pour ouvrir sa fiche.</p>
     </div>
   </section>
 
   <section class="deux">
     <div class="bloc">
-      <h2>Bâtiments par quartier</h2>
+      <h3>Bâtiments par quartier</h3>
       <div id="quartiers"></div>
     </div>
     <div class="bloc">
-      <h2>Liste de travail : données à compléter</h2>
+      <h3>Liste de travail : données à compléter</h3>
       <table>
         <thead><tr><th>Quartier</th><th>Bâtiments</th><th>Sans nom</th><th>Type à qualifier</th>
           <th>Niveaux inconnus</th><th>État non renseigné</th></tr></thead>
@@ -105,54 +188,176 @@
         pas être déduits des données ouvertes.</p>
     </div>
   </section>
+
+  <h2 class="section" id="documents">Documents du projet</h2>
+  <section class="docs">
+    <article class="doc">
+      <div class="vignette"><img loading="lazy" src="apercu_patrimoine.png" alt="Carte des bâtiments communaux par type"></div>
+      <div class="corps"><h3>Base patrimoniale</h3>
+        <p>Modèle de données, domaines de valeurs, relation bâtiment / locaux et rapport de contrôle qualité.</p>
+        <div class="liens"><a class="lien" href="__DEPOT__/blob/main/docs/dictionnaire_donnees.md" target="_blank" rel="noopener">Dictionnaire de données</a>
+          <a class="lien" href="__DEPOT__/blob/main/docs/controle_qualite.md" target="_blank" rel="noopener">Contrôle qualité</a></div></div>
+    </article>
+    <article class="doc" id="doc-recolement">
+      <div class="vignette"><img loading="lazy" src="recolement_avant_apres.png" alt="Base topographique avant et après intégration du récolement"></div>
+      <div class="corps"><h3>Intégration d'un récolement</h3>
+        <p>Rapport de contrôle : 11 anomalies détectées, actions menées et demande de reprise au géomètre.</p>
+        <div class="liens"><a class="lien" href="__DEPOT__/blob/main/docs/controle_recolement.md" target="_blank" rel="noopener">Rapport de contrôle</a>
+          <a class="lien" href="__DEPOT__/tree/main/donnees/topo" target="_blank" rel="noopener">Fichiers DXF</a></div></div>
+    </article>
+    <article class="doc">
+      <div class="vignette"><img loading="lazy" src="plan_terrasse_apercu.png" alt="Plan de terrasse annexé à un arrêté"></div>
+      <div class="corps"><h3>Plans de terrasse (A4)</h3>
+        <p>__NB_TERRASSES__ pages générées par atlas : emprise cotée, caractéristiques de l'autorisation, situation.</p>
+        <div class="liens"><a class="lien" href="plan_terrasses_arretes.pdf" target="_blank" rel="noopener">Ouvrir le PDF</a></div></div>
+    </article>
+    <article class="doc">
+      <div class="vignette"><img loading="lazy" src="plan_manifestation_apercu.png" alt="Plan du dispositif de sécurité d'une manifestation"></div>
+      <div class="corps"><h3>Plan de manifestation (A3)</h3>
+        <p>Périmètre piéton, voies fermées, barrages, accès secours, voie engins et équipements.</p>
+        <div class="liens"><a class="lien" href="plan_manifestation.pdf" target="_blank" rel="noopener">Ouvrir le PDF</a></div></div>
+    </article>
+    <article class="doc">
+      <div class="vignette"><img loading="lazy" src="plan_voirie_apercu.png" alt="Plan de la voirie communale par domanialité"></div>
+      <div class="corps"><h3>Plan de voirie (A3)</h3>
+        <p>Voirie par domanialité et linéaire par quartier, pour le conseil municipal.</p>
+        <div class="liens"><a class="lien" href="plan_voirie_conseil_municipal.pdf" target="_blank" rel="noopener">Ouvrir le PDF</a></div></div>
+    </article>
+    <article class="doc">
+      <div class="vignette"><img loading="lazy" src="fiche_batiment_apercu.png" alt="Fiche patrimoine du Théâtre Charles Dullin"></div>
+      <div class="corps"><h3>Fiches bâtiment</h3>
+        <p>__NB_FICHES__ fiches générées automatiquement depuis la base, avec la liste des locaux de chaque bâtiment.</p>
+        <div class="liens"><a class="lien" href="fiches/BAT-CE-0116.pdf" target="_blank" rel="noopener">Exemple</a>
+          <a class="lien" href="__DEPOT__/tree/main/sorties/fiches" target="_blank" rel="noopener">Toutes les fiches</a></div></div>
+    </article>
+    <article class="doc">
+      <div class="vignette texte" aria-hidden="true">{ }</div>
+      <div class="corps"><h3>Jeu open data</h3>
+        <p>Bâtiments, parcelles et voies en GeoJSON et CSV (WGS84), libellés en clair, descripteur Frictionless, Licence Ouverte 2.0.</p>
+        <div class="liens"><a class="lien" href="__DEPOT__/tree/main/sorties/open_data" target="_blank" rel="noopener">Fichiers</a>
+          <a class="lien" href="open_data/datapackage.json" target="_blank" rel="noopener">datapackage.json</a></div></div>
+    </article>
+    <article class="doc">
+      <div class="vignette texte" aria-hidden="true">.py</div>
+      <div class="corps"><h3>Code source</h3>
+        <p>Chaîne complète en 12 scripts Python (GDAL, GeoPandas, PyQGIS, ezdxf), reproductible depuis la collecte.</p>
+        <div class="liens"><a class="lien" href="__DEPOT__" target="_blank" rel="noopener">Dépôt GitHub</a></div></div>
+    </article>
+  </section>
+
   <footer>Sources : BD TOPO® IGN, cadastre Etalab, Base Adresse Nationale, fichiers DGFiP des locaux et
     parcelles des personnes morales (2025), quartiers de la Ville de Chambéry. Fond : Plan IGN.
-    Voirie communale : domanialité présumée.</footer>
+    Terrasses, manifestation et chantier sont fictifs. Voirie communale : domanialité présumée.
+    Ce démonstrateur n'émane pas de la Ville de Chambéry.</footer>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-const BAT = __BATIMENTS__;
-const QUA = __QUARTIERS__;
-const KPI = __INDICATEURS__;
-const TRAVAIL = __TRAVAIL__;
-const TYPES = __TYPES__;
-const COUL = __COULEURS__;
+const BAT = __BATIMENTS__, QUA = __QUARTIERS__, PAR = __PARCELLES__, VOI = __VOIRIE__;
+const TER = __TERRASSES__, FETE = __FETE__, CHA = __CHANTIER__, EMP = __EMPRISE__;
+const KPI = __INDICATEURS__, TRAVAIL = __TRAVAIL__, TYPES = __TYPES__, COUL = __COULEURS__;
+const COUL_DOM = __COULEURS_DOM__, DOMS = __DOMANIALITES__;
 
 const fmt = n => n == null ? "non renseigné" : Number(n).toLocaleString("fr-FR");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fiche = (titre, lignes, pied = "") => `<div class="popup"><b>${esc(titre)}</b><dl>${lignes
+  .filter(([, v]) => v !== null && v !== undefined && v !== "")
+  .map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>${pied}</div>`;
 const etat = { quartier: "", masques: new Set(), mesure: "nb" };
 
 // Indicateurs
-const kpis = [
-  [KPI.batiments, "bâtiments communaux"], [fmt(KPI.emprise_m2) + " m²", "d'emprise bâtie"],
-  [KPI.locaux, "locaux fiscaux"], [KPI.parcelles, "parcelles communales"],
+document.getElementById("kpis").innerHTML = [
+  [fmt(KPI.batiments), "bâtiments communaux"], [fmt(KPI.emprise_m2) + " m²", "d'emprise bâtie"],
+  [fmt(KPI.locaux), "locaux fiscaux"], [fmt(KPI.parcelles), "parcelles communales"],
   [fmt(KPI.surface_ha) + " ha", "de foncier communal"], [fmt(KPI.voirie_km) + " km", "de voirie communale présumée"],
-];
-document.getElementById("kpis").innerHTML = kpis
-  .map(([v, l]) => `<div class="kpi"><b>${typeof v === "number" ? fmt(v) : v}</b><span>${l}</span></div>`).join("");
+].map(([v, l]) => `<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join("");
 
-// Carte
-const carte = L.map("carte", { zoomSnap: 0.5 });
+// Carte et couches
+const carte = L.map("carte", { zoomSnap: 0.5, preferCanvas: true });
 L.tileLayer("https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}",
-  { maxZoom: 19, opacity: 0.55, attribution: "Plan IGN · Géoplateforme" }).addTo(carte);
-const coucheQ = L.geoJSON(QUA, { style: { color: "#23262b", weight: 1.5, fill: false, dashArray: "4 3" } }).addTo(carte);
+  { maxZoom: 20, maxNativeZoom: 19, opacity: 0.55, attribution: "Plan IGN · Géoplateforme" }).addTo(carte);
+const coucheQ = L.geoJSON(QUA, { style: { color: "#23262b", weight: 1.5, fill: false, dashArray: "4 3" }, interactive: false }).addTo(carte);
 carte.fitBounds(coucheQ.getBounds(), { padding: [10, 10] });
 
-const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-function popup(p) {
-  const lien = p.fiche ? `<a href="${esc(p.fiche)}" target="_blank" rel="noopener">Ouvrir la fiche PDF</a>` : "";
-  return `<div class="popup"><b>${esc(p.nom || "Bâtiment à nommer")}</b><dl>
-    <dt>Identifiant</dt><dd>${esc(p.id_bien)}</dd><dt>Type</dt><dd>${esc(p.type_libelle)}</dd>
-    <dt>Adresse</dt><dd>${esc(p.adresse)}</dd><dt>Quartier</dt><dd>${esc(p.quartier_nom)}</dd>
-    <dt>Emprise</dt><dd>${fmt(Math.round(p.emprise_m2))} m²</dd><dt>Niveaux</dt><dd>${fmt(p.nb_etages)}</dd>
-    <dt>Locaux</dt><dd>${fmt(p.nb_locaux)}</dd></dl>${lien}</div>`;
-}
-const coucheB = L.geoJSON(BAT, {
+const couches = {
+  parcelles: L.geoJSON(PAR, {
+    style: { color: "#7fa56a", weight: 0.6, fillColor: "#cfe3c0", fillOpacity: 0.55 },
+    onEachFeature: (f, l) => l.bindPopup(fiche("Parcelle communale " + f.properties.idu, [
+      ["Adresse", f.properties.adresse], ["Contenance", fmt(f.properties.surface) + " m²"],
+      ["Bâtie", f.properties.batie ? "oui (locaux communaux)" : "non"]])),
+  }),
+  voirie: L.geoJSON(VOI, {
+    style: f => ({ color: COUL_DOM[f.properties.domanialite], weight: f.properties.domanialite === "COM" ? 2 : 3, opacity: 0.9 }),
+    onEachFeature: (f, l) => l.bindPopup(fiche(f.properties.nom || "Voie sans nom", [
+      ["Domanialité", f.properties.dom_libelle + " (présumée)"], ["Longueur", fmt(f.properties.longueur_m) + " m"]])),
+  }),
+  terrasses: L.geoJSON(TER, {
+    style: { color: "#c82d23", weight: 1.5, fillColor: "#c82d23", fillOpacity: 0.45 },
+    onEachFeature: (f, l) => l.bindPopup(fiche(f.properties.etablissement, [
+      ["Référence", f.properties.id_occupation], ["Adresse", f.properties.adresse],
+      ["Type", f.properties.type_libelle], ["Surface", fmt(f.properties.surface_m2) + " m²"],
+      ["Statut", f.properties.statut_libelle], ["Arrêté", f.properties.num_arrete || "en instruction"]],
+      `<a href="plan_terrasses_arretes.pdf" target="_blank" rel="noopener">Plans annexés aux arrêtés</a>`)),
+  }),
+  fete: L.geoJSON(FETE, {
+    style: { color: "#d69600", weight: 1.5, fillColor: "#ffd666", fillOpacity: 0.5 },
+    onEachFeature: (f, l) => l.bindPopup(fiche("Fête de la musique (fictive)", [["Zone", f.properties.nom]],
+      `<a href="plan_manifestation.pdf" target="_blank" rel="noopener">Plan du dispositif</a>`)),
+  }),
+  chantier: L.layerGroup([
+    L.geoJSON(EMP, { style: { color: "#c43bc4", weight: 2, dashArray: "6 4", fillOpacity: 0.06 },
+      onEachFeature: (f, l) => l.bindPopup(fiche(f.properties.nom, [["Réaménagement", "rue Croix d'Or"]],
+        `<a href="#doc-recolement">Rapport de contrôle</a>`)) }),
+    L.geoJSON(CHA, {
+      style: { color: "#23262b", weight: 2.5 },
+      pointToLayer: (f, ll) => L.circleMarker(ll, { radius: 5, weight: 1, color: "#fff", fillOpacity: 1,
+        fillColor: { "Candélabre": "#e6b800", "Arbre": "#2e8b57", "Avaloir": "#1f4e79" }[f.properties.objet] }),
+      onEachFeature: (f, l) => l.bindPopup(fiche(f.properties.objet + " (récolement)", [["Détail", f.properties.detail]])),
+    }),
+  ]),
+};
+
+const popupBatiment = p => fiche(p.nom || "Bâtiment à nommer", [
+  ["Identifiant", p.id_bien], ["Type", p.type_libelle], ["Adresse", p.adresse], ["Quartier", p.quartier_nom],
+  ["Emprise", fmt(Math.round(p.emprise_m2)) + " m²"], ["Niveaux", fmt(p.nb_etages)], ["Locaux", fmt(p.nb_locaux)]],
+  p.fiche ? `<a href="${esc(p.fiche)}" target="_blank" rel="noopener">Ouvrir la fiche PDF</a>` : "");
+couches.batiments = L.geoJSON(null, {
   style: f => ({ color: "#23262b", weight: 0.6, fillColor: COUL[f.properties.type_bien], fillOpacity: 0.9 }),
-  onEachFeature: (f, l) => l.bindPopup(popup(f.properties)),
+  onEachFeature: (f, l) => l.bindPopup(popupBatiment(f.properties)),
 }).addTo(carte);
 
-// Filtres
+// Ordre d'affichage : parcelles en dessous, bâtiments, puis couches thématiques
+const ordre = ["parcelles", "voirie", "batiments", "fete", "terrasses", "chantier"];
+function afficher(nom, visible) {
+  const c = couches[nom];
+  if (visible && !carte.hasLayer(c)) {
+    c.addTo(carte);
+    ordre.slice(ordre.indexOf(nom) + 1).forEach(n => { if (carte.hasLayer(couches[n])) couches[n].eachLayer?.(l => l.bringToFront?.()); });
+  }
+  if (!visible && carte.hasLayer(c)) carte.removeLayer(c);
+  document.querySelector(`[data-couche="${nom}"]`).checked = visible;
+  if (nom === "voirie") document.getElementById("legende-voirie").classList.toggle("visible", visible);
+}
+document.querySelectorAll("[data-couche]").forEach(cb => cb.onchange = () => afficher(cb.dataset.couche, cb.checked));
+document.getElementById("legende-voirie").innerHTML = Object.entries(DOMS)
+  .map(([k, v]) => `<span><span class="pastille" style="background:${COUL_DOM[k]}"></span> ${esc(v)}</span>`).join("");
+
+// Vues proposées par les volets
+const VUES = {
+  base: { on: ["batiments", "parcelles"], cadre: () => coucheQ.getBounds() },
+  chantier: { on: ["batiments", "chantier"], cadre: () => L.geoJSON(EMP).getBounds().pad(0.35) },
+  terrasses: { on: ["batiments", "terrasses", "fete"], cadre: () => L.geoJSON(FETE).getBounds().pad(0.15) },
+  voirie: { on: ["voirie"], cadre: () => coucheQ.getBounds() },
+};
+document.querySelectorAll("[data-vue]").forEach(b => b.onclick = () => {
+  const v = VUES[b.dataset.vue];
+  ordre.forEach(n => afficher(n, v.on.includes(n)));
+  document.getElementById("tableau").scrollIntoView();
+  carte.invalidateSize();
+  carte.fitBounds(v.cadre(), { padding: [10, 10], animate: false });  // cadrage immédiat pendant le défilement
+});
+
+// Filtres des bâtiments
 const sel = document.getElementById("quartier");
 QUA.features.map(f => f.properties).sort((a, b) => a.nom.localeCompare(b.nom, "fr"))
   .forEach(q => sel.add(new Option(q.nom, q.code)));
@@ -171,7 +376,7 @@ function barres(conteneur, lignes, cliquable) {
   conteneur.innerHTML = lignes.map(l => `
     <div class="barre${l.eteinte ? " eteinte" : ""}" data-code="${l.code}" ${cliquable ? 'role="button" tabindex="0"' : ""}>
       <span class="lib" title="${esc(l.lib)}">${esc(l.lib)}</span>
-      <span class="piste"><span class="val" style="display:block;width:${(100 * l.v / max).toFixed(1)}%;background:${l.c}"></span></span>
+      <span class="piste"><span class="val" style="width:${(100 * l.v / max).toFixed(1)}%;background:${l.c}"></span></span>
       <span class="n">${fmt(Math.round(l.v))}</span></div>`).join("");
   if (!cliquable) return;
   conteneur.querySelectorAll(".barre").forEach(el => {
@@ -188,8 +393,8 @@ function barres(conteneur, lignes, cliquable) {
 function rafraichir(recadrer) {
   const dansQuartier = f => !etat.quartier || f.properties.quartier === etat.quartier;
   const visibles = BAT.features.filter(f => dansQuartier(f) && !etat.masques.has(f.properties.type_bien));
-  coucheB.clearLayers();
-  coucheB.addData({ type: "FeatureCollection", features: visibles });
+  couches.batiments.clearLayers();
+  couches.batiments.addData({ type: "FeatureCollection", features: visibles });
   document.getElementById("compte").textContent = `${visibles.length} bâtiment(s) affiché(s)`;
   if (recadrer) {
     const q = QUA.features.find(f => f.properties.code === etat.quartier);
@@ -205,7 +410,6 @@ function rafraichir(recadrer) {
     .sort((a, b) => b.v - a.v), true);
 }
 
-// Bâtiments par quartier (vue d'ensemble, non filtrée)
 barres(document.getElementById("quartiers"), TRAVAIL.map(r => ({ code: "", lib: r.quartier, v: r.total, c: "#005e8a" })), false);
 document.getElementById("travail").innerHTML = TRAVAIL.map(r => `<tr><td>${esc(r.quartier)}</td><td>${r.total}</td>
   <td class="${r.sans_nom ? "alerte" : ""}">${r.sans_nom}</td><td class="${r.a_qualifier ? "alerte" : ""}">${r.a_qualifier}</td>
