@@ -138,6 +138,22 @@ COUCHES = {
             ("adresse", "Adresse", "str", 120, None, ""),
         ] + _MAJ,
     },
+    "visite_batiment": {
+        "alias": "Visites de bâtiment",
+        "geom": None,
+        "description": "Historique des visites de bâtiments (saisie terrain QField) : état constaté, "
+                       "service affectataire, observations, photo. Table liée aux bâtiments par id_bien.",
+        "champs": [
+            ("id_visite", "Identifiant de la visite", "str", 24, None, "VIS-<id_bien>-<AAAAMMJJ>"),
+            ("id_bien", "Bâtiment visité", "str", 16, None, "Lien vers batiment_communal"),
+            ("date_visite", "Date de visite", "date", None, None, ""),
+            ("agent", "Agent", "str", 60, None, "Personne ayant réalisé la visite"),
+            ("etat", "État constaté", "str", 3, "dom_etat", ""),
+            ("affectataire", "Service affectataire", "str", 3, "dom_affectataire", ""),
+            ("observations", "Observations", "str", 250, None, "Désordres, travaux à prévoir"),
+            ("photo", "Photo", "str", 250, None, "Chemin relatif de la photo prise sur le terrain"),
+        ] + _MAJ,
+    },
     "voie": {
         "alias": "Référentiel des voies",
         "geom": "MultiLineString",
@@ -204,3 +220,14 @@ COUCHES = {
         ] + _MAJ,
     },
 }
+
+# --------------------------------------------------------------------------
+# Relations 1-n : (nom, table parent, table enfant, clé, libellé aller, libellé retour)
+# Classes de relations dans la géodatabase, relations de projet dans QGIS.
+# --------------------------------------------------------------------------
+RELATIONS = [
+    ("rel_batiment_locaux", "batiment_communal", "local_communal", "id_bien",
+     "contient", "est situé dans"),
+    ("rel_batiment_visites", "batiment_communal", "visite_batiment", "id_bien",
+     "a fait l'objet de", "concerne"),
+]

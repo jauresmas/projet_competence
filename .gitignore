@@ -2,3 +2,5 @@ donnees/brut/
 __pycache__/
 *.qgz~
 .impeccable/
+qfield/
+_apercu*

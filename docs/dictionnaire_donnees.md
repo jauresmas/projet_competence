@@ -63,6 +63,23 @@ Locaux (au sens fiscal) appartenant à la commune. Table liée aux bâtiments pa
 | `source` | Source | Texte (80) |  | Origine de la donnée |
 | `date_maj` | Date de mise à jour | Date |  | Dernière mise à jour de l'objet |
 
+### Visites de bâtiment (`visite_batiment`)
+
+Historique des visites de bâtiments (saisie terrain QField) : état constaté, service affectataire, observations, photo. Table liée aux bâtiments par id_bien. Géométrie : aucune (table). Objets : 0.
+
+| Champ | Alias | Type | Domaine | Description |
+|---|---|---|---|---|
+| `id_visite` | Identifiant de la visite | Texte (24) |  | VIS-<id_bien>-<AAAAMMJJ> |
+| `id_bien` | Bâtiment visité | Texte (16) |  | Lien vers batiment_communal |
+| `date_visite` | Date de visite | Date |  |  |
+| `agent` | Agent | Texte (60) |  | Personne ayant réalisé la visite |
+| `etat` | État constaté | Texte (3) | dom_etat |  |
+| `affectataire` | Service affectataire | Texte (3) | dom_affectataire |  |
+| `observations` | Observations | Texte (250) |  | Désordres, travaux à prévoir |
+| `photo` | Photo | Texte (250) |  | Chemin relatif de la photo prise sur le terrain |
+| `source` | Source | Texte (80) |  | Origine de la donnée |
+| `date_maj` | Date de mise à jour | Date |  | Dernière mise à jour de l'objet |
+
 ### Référentiel des voies (`voie`)
 
 Voies nommées de la commune, alignées sur la Base Adresse Nationale. Géométrie : MultiLineString. Objets : 782.
@@ -97,7 +114,7 @@ Tronçons routiers BD TOPO sur la commune, rattachés au référentiel des voies
 
 ### Terrasses et étals (`occupation_domaine_public`)
 
-Emprises autorisées d'occupation du domaine public (terrasses, étals). Géométrie : MultiPolygon. Objets : 0.
+Emprises autorisées d'occupation du domaine public (terrasses, étals). Géométrie : MultiPolygon. Objets : 11.
 
 | Champ | Alias | Type | Domaine | Description |
 |---|---|---|---|---|
@@ -220,5 +237,6 @@ Quartiers de la Ville de Chambéry (open data Ville). Géométrie : MultiPolygon
 
 ## Relations
 
-- `rel_batiment_locaux` : un bâtiment communal (`id_bien`) contient 0 à n locaux (`local_communal.id_bien`). Classe de relations dans la géodatabase, relation de projet dans QGIS.
+- `rel_batiment_locaux` : un enregistrement de `batiment_communal` contient 0 à n enregistrements de `local_communal` (clé `id_bien`). Classe de relations dans la géodatabase, relation de projet dans QGIS.
+- `rel_batiment_visites` : un enregistrement de `batiment_communal` a fait l'objet de 0 à n enregistrements de `visite_batiment` (clé `id_bien`). Classe de relations dans la géodatabase, relation de projet dans QGIS.
 - `troncon_voirie.id_voie` renvoie à `voie.id_voie` (identifiant BAN de la voie).

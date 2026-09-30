@@ -7,9 +7,10 @@ Base contrôlée : `patrimoine_chambery.gpkg`, le 30/09/2026.
 | batiment_communal | 603 |
 | parcelle_communale | 1948 |
 | local_communal | 1066 |
+| visite_batiment | 0 |
 | voie | 782 |
 | troncon_voirie | 4873 |
-| occupation_domaine_public | 0 |
+| occupation_domaine_public | 11 |
 | equipement_public | 333 |
 | quartier | 7 |
 
@@ -33,6 +34,8 @@ Base contrôlée : `patrimoine_chambery.gpkg`, le 30/09/2026.
 | batiment_communal | Valeur hors domaine (type_bien) | OK |  |
 | batiment_communal | Valeur hors domaine (etat) | OK |  |
 | batiment_communal | Valeur hors domaine (affectataire) | OK |  |
+| visite_batiment | Valeur hors domaine (etat) | OK |  |
+| visite_batiment | Valeur hors domaine (affectataire) | OK |  |
 | troncon_voirie | Valeur hors domaine (domanialite) | OK |  |
 | troncon_voirie | Valeur hors domaine (sens) | OK |  |
 | occupation_domaine_public | Valeur hors domaine (type_occupation) | OK |  |

@@ -25,7 +25,8 @@ from qgis.PyQt.QtGui import QColor
 
 from mise_en_page import (ACCENT, FOND_BATI, GRIS_TEXTE, arrondir_echelle, carte, couche,
                           echelle, entete, etiquette, exporter_pdf, exporter_png, legende, nord,
-                          pied, placer, rectangle, reglages_pdf, remplissage, texte)
+                          pied, placer, rectangle, reglages_pdf, remplissage,
+                          rendre_chemins_relatifs, texte)
 
 RACINE = Path(__file__).resolve().parents[1]
 BASE = RACINE / "donnees" / "traite" / "patrimoine_chambery.gpkg"
@@ -373,6 +374,7 @@ for titre, lyrs in [("Terrasses", [cotes, ter]),
     for lyr in lyrs:
         g.addLayer(lyr)
 projet.write(str(RACINE / "plans_volet3.qgz"))
+rendre_chemins_relatifs(RACINE / "plans_volet3.qgz", RACINE)
 
 app.exitQgis()
 print("Plans exportés dans", SORTIES)

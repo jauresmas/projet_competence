@@ -18,6 +18,7 @@ from pathlib import Path
 
 import ezdxf
 import geopandas as gpd
+from PIL import Image
 from shapely.geometry import LineString, Point, Polygon
 
 from schema import DOMAINES
@@ -133,6 +134,16 @@ travail.sort(key=lambda r: -r["total"])
 def js(obj):
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
+
+# Vignettes légères des documents (haut de chaque aperçu, 640 px de large, JPEG)
+VIGNETTES = SORTIES / "vignettes"
+VIGNETTES.mkdir(exist_ok=True)
+for apercu in ["apercu_patrimoine", "recolement_avant_apres", "plan_terrasse_apercu",
+               "plan_manifestation_apercu", "plan_voirie_apercu", "fiche_batiment_apercu",
+               "modele_recolement"]:
+    im = Image.open(SORTIES / f"{apercu}.png").convert("RGB")
+    im = im.resize((640, round(im.height * 640 / im.width)), Image.LANCZOS).crop((0, 0, 640, 360))
+    im.save(VIGNETTES / f"{apercu}.jpg", quality=82, optimize=True)
 
 remplacements = {
     "__BATIMENTS__": js(batiments), "__QUARTIERS__": js(quartiers_geo), "__PARCELLES__": js(parcelles),

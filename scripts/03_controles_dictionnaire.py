@@ -13,7 +13,7 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-from schema import COUCHES, DOMAINES, SRID
+from schema import COUCHES, DOMAINES, RELATIONS, SRID
 
 RACINE = Path(__file__).resolve().parents[1]
 BASE = RACINE / "donnees" / "traite" / "patrimoine_chambery.gpkg"
@@ -133,8 +133,11 @@ for nom, (desc, valeurs) in DOMAINES.items():
 d += [
     "## Relations",
     "",
-    "- `rel_batiment_locaux` : un bâtiment communal (`id_bien`) contient 0 à n locaux "
-    "(`local_communal.id_bien`). Classe de relations dans la géodatabase, relation de projet dans QGIS.",
+] + [
+    f"- `{nom}` : un enregistrement de `{parent}` {aller} 0 à n enregistrements de `{enfant}` "
+    f"(clé `{cle}`). Classe de relations dans la géodatabase, relation de projet dans QGIS."
+    for nom, parent, enfant, cle, aller, _ in RELATIONS
+] + [
     "- `troncon_voirie.id_voie` renvoie à `voie.id_voie` (identifiant BAN de la voie).",
     "",
 ]

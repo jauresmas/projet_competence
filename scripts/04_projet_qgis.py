@@ -1,18 +1,23 @@
 """
 04_projet_qgis.py
-Crée le projet QGIS du SIG Patrimoine : couches du GeoPackage, styles,
-relation bâtiment / locaux (formulaire avec la liste des locaux du bâtiment).
+Crée le projet QGIS de gestion du SIG Patrimoine : couches du GeoPackage, styles,
+relations (bâtiment / locaux, bâtiment / visites) et formulaires de saisie
+(listes, contraintes, valeurs calculées : voir formulaires.py).
+
+Produit aussi un paquet QField autonome (qfield/) pour les visites de terrain.
 
 Lancement : python-qgis-ltr.bat 04_projet_qgis.py
 """
+import shutil
 from pathlib import Path
 from urllib.parse import quote
 
-from qgis.core import (QgsApplication, QgsCategorizedSymbolRenderer, QgsFillSymbol,
-                       QgsLineSymbol, QgsProject, QgsRasterLayer, QgsRelation,
+from qgis.core import (QgsApplication, QgsCategorizedSymbolRenderer, QgsDataProvider,
+                       QgsFillSymbol, QgsLineSymbol, QgsProject, QgsRasterLayer, QgsRelation,
                        QgsRendererCategory, QgsVectorLayer)
 
-from schema import COUCHES, DOMAINES
+from formulaires import configurer
+from schema import COUCHES, DOMAINES, RELATIONS
 
 RACINE = Path(__file__).resolve().parents[1]
 BASE = RACINE / "donnees" / "traite" / "patrimoine_chambery.gpkg"
@@ -27,9 +32,9 @@ app = QgsApplication([], False)
 app.initQgis()
 projet = QgsProject.instance()
 projet.setCrs(projet.crs().fromEpsgId(3945))
-projet.setTitle("SIG Patrimoine - Ville de Chambéry")
+projet.setTitle("SIG Patrimoine Chambéry (démonstrateur)")
 
-ORDRE = ["occupation_domaine_public", "batiment_communal", "local_communal",
+ORDRE = ["occupation_domaine_public", "batiment_communal", "local_communal", "visite_batiment",
          "parcelle_communale", "equipement_public", "troncon_voirie", "voie", "quartier"]
 couches = {}
 for nom in ORDRE:
@@ -82,17 +87,37 @@ for nom, couche, fmt, visible in [
     groupe.addLayer(fond).setItemVisibilityChecked(visible)
 groupe.setExpanded(False)
 
-# Relation 1-n bâtiment -> locaux
-rel = QgsRelation()
-rel.setId("rel_batiment_locaux")
-rel.setName("Locaux du bâtiment")
-rel.setReferencedLayer(couches["batiment_communal"].id())
-rel.setReferencingLayer(couches["local_communal"].id())
-rel.addFieldPair("id_bien", "id_bien")
-assert rel.isValid(), rel.validationError()
-projet.relationManager().addRelation(rel)
+# Relations 1-n déclarées dans schema.py
+for nom, parent, enfant, cle, _, _ in RELATIONS:
+    rel = QgsRelation()
+    rel.setId(nom)
+    rel.setName(COUCHES[enfant]["alias"])
+    rel.setReferencedLayer(couches[parent].id())
+    rel.setReferencingLayer(couches[enfant].id())
+    rel.addFieldPair(cle, cle)
+    assert rel.isValid(), rel.validationError()
+    projet.relationManager().addRelation(rel)
+
+configurer(couches, projet.relationManager().relations())
 
 cible = RACINE / "patrimoine_chambery.qgz"
-projet.write(str(cible))
+projet.setFileName(str(cible))  # chemins relatifs au projet
+projet.write()
 print("Projet écrit :", cible)
+
+# Paquet QField : copie de la base et du projet, sans les couches inutiles sur le terrain
+TERRAIN = RACINE / "qfield"
+TERRAIN.mkdir(exist_ok=True)
+(TERRAIN / "DCIM").mkdir(exist_ok=True)  # photos des visites, chemins relatifs au projet
+base_terrain = TERRAIN / BASE.name
+shutil.copy2(BASE, base_terrain)
+for nom in ["equipement_public", "troncon_voirie"]:
+    projet.removeMapLayer(couches.pop(nom).id())
+for nom, lyr in couches.items():
+    lyr.setDataSource(f"{base_terrain}|layername={nom}", lyr.name(), "ogr",
+                      QgsDataProvider.ProviderOptions())
+projet.setFileName(str(TERRAIN / "patrimoine_terrain.qgz"))
+projet.setTitle("Visites du patrimoine bâti (QField)")
+projet.write()
+print("Paquet QField écrit :", TERRAIN)
 app.exitQgis()

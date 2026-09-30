@@ -99,7 +99,7 @@
   <div class="surtitre">Démonstrateur de compétences, non officiel</div>
   <h1>SIG Patrimoine : Chambéry</h1>
   <p>Système d'information patrimonial municipal construit uniquement avec des données ouvertes (IGN, cadastre,
-    BAN, DGFiP) : base de données, intégration de récolements, plans types et restitutions automatiques.
+    BAN, DGFiP)&nbsp;: base de données, intégration de récolements, plans types et restitutions automatiques.
     Mise à jour du __DATE__.</p>
   <nav aria-label="Sections">
     <a href="#volets">Le projet</a><a href="#tableau">Tableau de bord</a><a href="#documents">Documents</a>
@@ -192,39 +192,39 @@
   <h2 class="section" id="documents">Documents du projet</h2>
   <section class="docs">
     <article class="doc">
-      <div class="vignette"><img loading="lazy" src="apercu_patrimoine.png" alt="Carte des bâtiments communaux par type"></div>
+      <div class="vignette"><img src="vignettes/apercu_patrimoine.jpg" width="640" height="360" alt="Carte des bâtiments communaux par type"></div>
       <div class="corps"><h3>Base patrimoniale</h3>
         <p>Modèle de données, domaines de valeurs, relation bâtiment / locaux et rapport de contrôle qualité.</p>
         <div class="liens"><a class="lien" href="__DEPOT__/blob/main/docs/dictionnaire_donnees.md" target="_blank" rel="noopener">Dictionnaire de données</a>
           <a class="lien" href="__DEPOT__/blob/main/docs/controle_qualite.md" target="_blank" rel="noopener">Contrôle qualité</a></div></div>
     </article>
     <article class="doc" id="doc-recolement">
-      <div class="vignette"><img loading="lazy" src="recolement_avant_apres.png" alt="Base topographique avant et après intégration du récolement"></div>
+      <div class="vignette"><img src="vignettes/recolement_avant_apres.jpg" width="640" height="360" alt="Base topographique avant et après intégration du récolement"></div>
       <div class="corps"><h3>Intégration d'un récolement</h3>
         <p>Rapport de contrôle : 11 anomalies détectées, actions menées et demande de reprise au géomètre.</p>
         <div class="liens"><a class="lien" href="__DEPOT__/blob/main/docs/controle_recolement.md" target="_blank" rel="noopener">Rapport de contrôle</a>
           <a class="lien" href="__DEPOT__/tree/main/donnees/topo" target="_blank" rel="noopener">Fichiers DXF</a></div></div>
     </article>
     <article class="doc">
-      <div class="vignette"><img loading="lazy" src="plan_terrasse_apercu.png" alt="Plan de terrasse annexé à un arrêté"></div>
+      <div class="vignette"><img src="vignettes/plan_terrasse_apercu.jpg" width="640" height="360" alt="Plan de terrasse annexé à un arrêté"></div>
       <div class="corps"><h3>Plans de terrasse (A4)</h3>
         <p>__NB_TERRASSES__ pages générées par atlas : emprise cotée, caractéristiques de l'autorisation, situation.</p>
         <div class="liens"><a class="lien" href="plan_terrasses_arretes.pdf" target="_blank" rel="noopener">Ouvrir le PDF</a></div></div>
     </article>
     <article class="doc">
-      <div class="vignette"><img loading="lazy" src="plan_manifestation_apercu.png" alt="Plan du dispositif de sécurité d'une manifestation"></div>
+      <div class="vignette"><img src="vignettes/plan_manifestation_apercu.jpg" width="640" height="360" alt="Plan du dispositif de sécurité d'une manifestation"></div>
       <div class="corps"><h3>Plan de manifestation (A3)</h3>
         <p>Périmètre piéton, voies fermées, barrages, accès secours, voie engins et équipements.</p>
         <div class="liens"><a class="lien" href="plan_manifestation.pdf" target="_blank" rel="noopener">Ouvrir le PDF</a></div></div>
     </article>
     <article class="doc">
-      <div class="vignette"><img loading="lazy" src="plan_voirie_apercu.png" alt="Plan de la voirie communale par domanialité"></div>
+      <div class="vignette"><img src="vignettes/plan_voirie_apercu.jpg" width="640" height="360" alt="Plan de la voirie communale par domanialité"></div>
       <div class="corps"><h3>Plan de voirie (A3)</h3>
         <p>Voirie par domanialité et linéaire par quartier, pour le conseil municipal.</p>
         <div class="liens"><a class="lien" href="plan_voirie_conseil_municipal.pdf" target="_blank" rel="noopener">Ouvrir le PDF</a></div></div>
     </article>
     <article class="doc">
-      <div class="vignette"><img loading="lazy" src="fiche_batiment_apercu.png" alt="Fiche patrimoine du Théâtre Charles Dullin"></div>
+      <div class="vignette"><img src="vignettes/fiche_batiment_apercu.jpg" width="640" height="360" alt="Fiche patrimoine du Théâtre Charles Dullin"></div>
       <div class="corps"><h3>Fiches bâtiment</h3>
         <p>__NB_FICHES__ fiches générées automatiquement depuis la base, avec la liste des locaux de chaque bâtiment.</p>
         <div class="liens"><a class="lien" href="fiches/BAT-CE-0116.pdf" target="_blank" rel="noopener">Exemple</a>
@@ -238,9 +238,16 @@
           <a class="lien" href="open_data/datapackage.json" target="_blank" rel="noopener">datapackage.json</a></div></div>
     </article>
     <article class="doc">
+      <div class="vignette"><img src="vignettes/modele_recolement.jpg" width="640" height="360" alt="Schéma du modèle graphique d'intégration d'un récolement"></div>
+      <div class="corps"><h3>Outils ArcGIS Pro et AutoCAD</h3>
+        <p>Formulaires et contraintes, projet terrain QField, modèle graphique, règles Arcade, charte DAO et procédure AutoCAD.</p>
+        <div class="liens"><a class="lien" href="__DEPOT__/blob/main/docs/correspondance_outils.md" target="_blank" rel="noopener">Correspondance des outils</a>
+          <a class="lien" href="__DEPOT__/blob/main/docs/procedure_autocad_recolement.md" target="_blank" rel="noopener">Procédure AutoCAD</a></div></div>
+    </article>
+    <article class="doc">
       <div class="vignette texte" aria-hidden="true">.py</div>
       <div class="corps"><h3>Code source</h3>
-        <p>Chaîne complète en 12 scripts Python (GDAL, GeoPandas, PyQGIS, ezdxf), reproductible depuis la collecte.</p>
+        <p>Chaîne complète en 14 scripts Python (GDAL, GeoPandas, PyQGIS, ezdxf), reproductible depuis la collecte.</p>
         <div class="liens"><a class="lien" href="__DEPOT__" target="_blank" rel="noopener">Dépôt GitHub</a></div></div>
     </article>
   </section>
@@ -349,13 +356,14 @@ const VUES = {
   terrasses: { on: ["batiments", "terrasses", "fete"], cadre: () => L.geoJSON(FETE).getBounds().pad(0.15) },
   voirie: { on: ["voirie"], cadre: () => coucheQ.getBounds() },
 };
-document.querySelectorAll("[data-vue]").forEach(b => b.onclick = () => {
-  const v = VUES[b.dataset.vue];
+function appliquerVue(nom, defiler) {
+  const v = VUES[nom];
   ordre.forEach(n => afficher(n, v.on.includes(n)));
-  document.getElementById("tableau").scrollIntoView();
+  if (defiler) document.getElementById("tableau").scrollIntoView();
   carte.invalidateSize();
   carte.fitBounds(v.cadre(), { padding: [10, 10], animate: false });  // cadrage immédiat pendant le défilement
-});
+}
+document.querySelectorAll("[data-vue]").forEach(b => b.onclick = () => appliquerVue(b.dataset.vue, true));
 
 // Filtres des bâtiments
 const sel = document.getElementById("quartier");
@@ -416,6 +424,10 @@ document.getElementById("travail").innerHTML = TRAVAIL.map(r => `<tr><td>${esc(r
   <td>${r.sans_niveaux}</td><td>${r.etat_nr}</td></tr>`).join("");
 
 rafraichir(false);
+// Lien direct vers une vue : tableau_de_bord.html?vue=chantier (base, chantier, terrasses, voirie)
+const vueDemandee = new URLSearchParams(location.search).get("vue");
+if (VUES[vueDemandee]) appliquerVue(vueDemandee, false);
+if (location.hash) document.querySelector(location.hash)?.scrollIntoView();  // après le cadrage de la carte
 </script>
 </body>
 </html>

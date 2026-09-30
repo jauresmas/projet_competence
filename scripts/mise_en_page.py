@@ -185,3 +185,21 @@ def exporter_pdf(layout, cible):
 def arrondir_echelle(e, pas):
     return math.ceil(e / pas) * pas
 
+
+
+def rendre_chemins_relatifs(qgz, racine):
+    """Remplace dans un projet .qgz les chemins absolus restants (références de couches des
+    mises en page, couche de l'atlas) par des chemins relatifs au dossier du projet."""
+    import zipfile
+    qgz, racine = Path(qgz), Path(racine)
+    with zipfile.ZipFile(qgz) as z:
+        contenu = {n: z.read(n) for n in z.namelist()}
+    for n, octets in contenu.items():
+        if n.endswith(".qgs"):
+            texte_qgs = octets.decode("utf-8")
+            for absolu in (str(racine) + "\\", racine.as_posix() + "/"):
+                texte_qgs = texte_qgs.replace(absolu, "./")
+            contenu[n] = texte_qgs.replace(".\donnees\\", "./donnees/").encode("utf-8")
+    with zipfile.ZipFile(qgz, "w", zipfile.ZIP_DEFLATED) as z:
+        for n, octets in contenu.items():
+            z.writestr(n, octets)

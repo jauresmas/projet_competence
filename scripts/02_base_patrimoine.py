@@ -231,6 +231,7 @@ equip = equip[equip.geom_type.isin(["Polygon", "MultiPolygon"])].copy()
 equip["source"] = "BD TOPO IGN"
 
 occupation = gpd.GeoDataFrame({"geometry": []}, geometry="geometry", crs=SRID)
+visites = pd.DataFrame(columns=["id_visite"])  # table vide, alimentée par la saisie terrain
 
 # --------------------------------------------------------------------------
 # 7. Écriture
@@ -244,6 +245,7 @@ couches = {
     "troncon_voirie": tr,
     "equipement_public": equip,
     "occupation_domaine_public": occupation,
+    "visite_batiment": visites,
 }
 for gdf in couches.values():
     gdf["date_maj"] = AUJOURDHUI

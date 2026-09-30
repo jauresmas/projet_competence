@@ -10,7 +10,7 @@ from pathlib import Path
 import pandas as pd
 from osgeo import gdal, ogr, osr
 
-from schema import COUCHES, DOMAINES, SRID
+from schema import COUCHES, DOMAINES, RELATIONS, SRID
 
 gdal.UseExceptions()
 
@@ -89,16 +89,16 @@ def ecrire_base(couches, cible):
     if pilote == "GPKG":
         return  # relation 1-n déclarée dans le projet QGIS (le GeoPackage ne gère que le n-n)
 
-    # La géodatabase doit être rouverte pour y déclarer la classe de relations
+    # La géodatabase doit être rouverte pour y déclarer les classes de relations
     ds = gdal.OpenEx(str(cible), gdal.OF_UPDATE | gdal.OF_VECTOR)
-    rel = gdal.Relationship("rel_batiment_locaux", "batiment_communal",
-                            "local_communal", gdal.GRC_ONE_TO_MANY)
-    rel.SetLeftTableFields(["id_bien"])
-    rel.SetRightTableFields(["id_bien"])
-    rel.SetType(gdal.GRT_ASSOCIATION)
-    rel.SetForwardPathLabel("contient")
-    rel.SetBackwardPathLabel("est situé dans")
-    if not ds.AddRelationship(rel):
-        raise RuntimeError(f"relation non créée dans {cible.name}")
-    print(f"  {cible.name} : classe de relations rel_batiment_locaux créée")
+    for nom, parent, enfant, cle, aller, retour in RELATIONS:
+        rel = gdal.Relationship(nom, parent, enfant, gdal.GRC_ONE_TO_MANY)
+        rel.SetLeftTableFields([cle])
+        rel.SetRightTableFields([cle])
+        rel.SetType(gdal.GRT_ASSOCIATION)
+        rel.SetForwardPathLabel(aller)
+        rel.SetBackwardPathLabel(retour)
+        if not ds.AddRelationship(rel):
+            raise RuntimeError(f"relation {nom} non créée dans {cible.name}")
+        print(f"  {cible.name} : classe de relations {nom} créée")
     ds = None
